@@ -1,86 +1,95 @@
-// Select DOM Elements
-const searchForm = document.getElementById('search-form');
-const searchInput = document.getElementById('search-input');
-const wordDetails = document.getElementById('word-details');
-const errorMessage = document.getElementById('error-message');
-const favoritesList = document.getElementById('favorites-list');
-const audio = document.getElementById('audio-element');
 
-async function fetchWord(word) {
-    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-    if (!response.ok) throw new Error("Word not found.");
-    const data = await response.json();
-    return data[0];
+const API_BASE_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
+
+let currentWordData = null;
+const audioController = new Audio();
+
+const ui = {
+    form: document.getElementById('search-form'),
+    input: document.getElementById('search-input'),
+    details: document.getElementById('word-details'),
+    error: document.getElementById('error-message'),
+    favList: document.getElementById('favorites-list'),
+    saveBtn: document.getElementById('save-word-btn')
+};
+
+async function lookupWord(word) {
+    const response = await fetch(`${API_BASE_URL}${word.toLowerCase()}`);
+    if (!response.ok) throw new Error('We couldn’t find that word in our records.');
+    const [data] = await response.json();
+    return data;
 }
 
-function renderWord(data) {
-    document.getElementById('word-title').textContent = data.word;
-    document.getElementById('word-phonetic').textContent = data.phonetic || "";
+const displayResult = (data) => {
+    currentWordData = data; // Store for favorites
+    const { word, meanings, phonetics, phonetic } = data;
+
+    ui.details.querySelector('#word-title').textContent = word;
+    ui.details.querySelector('#word-punctuation').textContent = phonetic || phonetics[0]?.text || '';
     
-    const meaning = data.meanings[0];
-    const definition = meaning.definitions[0];
+    const sense = meanings[0];
+    const def = sense.definitions[0];
 
-    document.querySelector('#word-type span').textContent = meaning.partOfSpeech;
-    document.querySelector('#word-meaning span').textContent = definition.definition;
-    document.querySelector('#word-example span').textContent = definition.example || "No example available.";
+    const slots = {
+        '#word-type span': sense.partOfSpeech,
+        '#word-meaning span': def.definition,
+        '#word-example span': def.example || 'No example provided.',
+        '#word-synonyms span': sense.synonyms?.join(', ') || 'N/A',
+        '#word-antonyms span': sense.antonyms?.join(', ') || 'N/A'
+    };
+
+    Object.entries(slots).forEach(([selector, text]) => {
+        const el = ui.details.querySelector(selector);
+        if (el) el.textContent = text;
+    });
+
+    // Audio Setup
+    const track = phonetics.find(p => p.audio !== '');
+    const playBtn = document.getElementById('word-audio');
     
-    const synonyms = meaning.synonyms.length ? meaning.synonyms.join(', ') : "None";
-    document.querySelector('#word-synonyms span').textContent = synonyms;
-    const antonyms = meaning.antonyms.length ? meaning.antonyms.join(', ') : "None";
-    document.querySelector('#word-antonyms span').textContent = antonyms;
-
-
-    const audioEntry = data.phonetics.find(p => p.audio !== "");
-    const audioBtn = document.getElementById('word-audio');
-    if (audioEntry) {
-        audio.src = audioEntry.audio;
-        audioBtn.style.display = 'inline-block';
+    if (track) {
+        audioController.src = track.audio;
+        playBtn.style.display = 'inline-block';
     } else {
-        audioBtn.style.display = 'none';
+        playBtn.style.display = 'none';
     }
 
-    wordDetails.style.display = 'block';
-}
+    ui.details.style.display = 'block';
+};
 
-function saveToFavorites(word) {
-    let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    if (!favorites.includes(word)) {
-        favorites.push(word);
-        localStorage.setItem('favorites', JSON.stringify(favorites));
-        renderFavorites();
+const syncFavorites = () => {
+    const list = JSON.parse(localStorage.getItem('oxforder_favs')) || [];
+    ui.favList.innerHTML = list.map(item => `<li>${item}</li>`).join('');
+};
+
+const addToFavorites = () => {
+    if (!currentWordData) return;
+    const list = JSON.parse(localStorage.getItem('oxforder_favs')) || [];
+    if (!list.includes(currentWordData.word)) {
+        list.push(currentWordData.word);
+        localStorage.setItem('oxforder_favs', JSON.stringify(list));
+        syncFavorites();
     }
-}
+};
 
-function renderFavorites() {
-    const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-    favoritesList.innerHTML = favorites.map(w => `<li onclick="quickSearch('${w}')">${w}</li>`).join('');
-}
-
-searchForm.addEventListener('submit', async (e) => {
+ui.form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const word = searchInput.value.trim();
-    errorMessage.textContent = "";
-    wordDetails.style.display = 'none';
+    const query = ui.input.value.trim();
+    if (!query) return;
 
-    if (!word) return;
+    ui.error.textContent = 'Searching...';
+    ui.details.style.display = 'none';
 
     try {
-        const data = await fetchWord(word);
-        renderWord(data);
+        const data = await lookupWord(query);
+        ui.error.textContent = '';
+        displayResult(data);
     } catch (err) {
-        errorMessage.textContent = err.message;
+        ui.error.textContent = err.message;
     }
 });
 
-document.getElementById('save-word-btn').addEventListener('click', () => {
-    const word = document.getElementById('word-title').textContent;
-    saveToFavorites(word);
-});
+ui.saveBtn.addEventListener('click', addToFavorites);
+document.getElementById('word-audio').addEventListener('click', () => audioController.play());
 
-document.getElementById('word-audio').addEventListener('click', () => audio.play());
-
-window.quickSearch = (word) => {
-    searchInput.value = word;
-    searchForm.dispatchEvent(new Event('submit'));
-};
-renderFavorites();
+syncFavorites();

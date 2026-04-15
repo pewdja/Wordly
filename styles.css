@@ -2,7 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family:Georgia, 'Times New Roman', Times, serif;
 
 }
 body{
@@ -12,9 +12,13 @@ body{
     align-items: center;
     height: 100vh;
     padding: 10px;
-    background: #152331;  /* fallback for old browsers */
-    background: -webkit-linear-gradient(to right, #000000, #152331);  /* Chrome 10-25, Safari 5.1-6 */
-    background: linear-gradient(to right, #000000, #152331); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background-image: url('https://media.gettyimages.com/id/165959221/vector/books-icons.jpg?s=612x612&w=0&k=20&c=BEmpLku9OWao2rv4DNu54UIL40RdnAxCA8qrrJT9TCE=');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    margin: 0;
 
 }
 .container{
@@ -60,5 +64,33 @@ button{
 }
 button:hover{
     background-color: #0056b3;
+}
+.container .word-details{
+    margin-top: 20px;
+    display: none;
+}
+.container form :where(input, button){
+    font-size: 16px;
+    flex-grow: 1;
+    flex-shrink: 0;
+    padding: 0.5em;
+    transition: .3s;
+}
+.container form :where(input, button):focus{
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 5px rgba(0,123,255,0.5);
+}
+.container .blockquote{
+    font-style: italic;
+    color: #555;
+    margin: 20px 0;
+    padding-left: 20px;
+    border-left: 4px solid #007BFF;
+}
+.error{
+    color: red;
+    text-align: center;
+    margin-top: 10px;
 }
 

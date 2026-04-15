@@ -8,10 +8,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>Wordly Dictionary</h1>
+        <h1>Oxforder Dictionary</h1>
         
         <form id="search-form">
-            <input type="text" id="search-input" placeholder="Search for a word..." autocomplete="off">
+            <input type="text" id="search-input" placeholder="Search for a word..." required>
             <button type="submit"> Search</button>
         </form>
 
@@ -20,25 +20,25 @@
         <div id="word-details" class="word-details" style="display: none;">
             <div class="card-header">
                 <h2 id="word-title"></h2>
-                <button id="save-word-btn"> Save to Favorites</button>
+                <button id="save-word-btn">Favorite</button>
             </div>
-            <p id="word-phonetic" class="phonetic"></p>
+            <p id="word-punctuation" class="punctuation"></p>
             <button id="word-audio" class="audio-btn">🔊 Play Sound</button>
-            <hr>
-            <p id="word-type"><strong>Type:</strong> <span></span></p>// for the type of the word like noun or verb
-            <p id="word-meaning"><strong>Meaning:</strong> <span></span></p>//for the meaning if the word
-            <p id="word-example"><strong>Example:</strong> <span></span></p>//examples in a sentense
-            <p id="word-synonyms"><strong>Synonyms:</strong> <span></span></p>// for synynoms
-            <p id="word-antonyms"><strong>Antonyms:</strong> <span></span></p>// for antonyms
+            
+            <p id="word-type"><strong>Type:</strong> <span></span></p>
+            <p id="word-meaning"><strong>Meaning:</strong> <span></span></p>
+            <p id="word-example"><strong>Example:</strong> <span></span></p>
+            <p id="word-synonyms"><strong>Synonyms:</strong> <span></span></p>
+            <p id="word-antonyms"><strong>Antonyms:</strong> <span></span></p>
         </div>
 
         <div class="favorites-section">
-            <h3>Your Saved Words</h3>
-            <ul id="favorites-list"></ul>// for favorites
+            <h3>Saved Words</h3>
+            <ul id="favorites-list"></ul>
         </div>
     </div>
 
-    <audio id="audio-element"></audio>// for audio
+    <audio id="audio-element"></audio>
     <script src="script.js"></script>
 </body>
 </html>
