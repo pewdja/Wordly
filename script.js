@@ -92,18 +92,17 @@ form.onsubmit = async (e) => {// we make the form submission an asynchronous fun
         const data = await getWord(word);// we fetch the word data from the API
         error.textContent = '';
         showWord(data);
-    } catch (err) {
-        error.textContent = err.message;
-    }
- document.addEventListener('click', (e) => {// we add a click event listener to the document to handle clicks on the favorite words in the list
-    if (e.target.classList.contains('fav-word')) {// if the clicked element has the class 'fav-word', we set the input value to that word and submit the form to search for it
-        input.value = e.target.textContent;
-        form.dispatchEvent(new Event('submit'));// we dispatch a submit event on the form to trigger the search
-    }
-});
+    } catch (err) {        error.textContent = err.message;    }
 };
 
 saveBtn.onclick = saveFav;
 playBtn.onclick = () => audio.play();
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('fav-word')) {
+        input.value = e.target.textContent;
+        form.dispatchEvent(new Event('submit'));
+    }
+
+});
 
 loadFavs();// we load the favorites when the page loads
