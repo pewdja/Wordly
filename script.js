@@ -54,8 +54,14 @@ function showWord(data) {
 
 function loadFavs() {
     const favs = JSON.parse(localStorage.getItem('favs')) || [];// we get the favorites from localStorage, or an empty array if none
-    favList.innerHTML = favs.map(w => `<li>${w}</li>`).join('');// we create a list item for each favorite word and join them into a single string to set as the innerHTML of the favorites list
+    favList.innerHTML = favs.map(w => `
+    <li>
+        <span class="fav-word">${w}</span>
+        <button onclick="removeFav('${w}')">❌</button>
+    </li>
+`).join('');// we create a list item for each favorite word, with a button to remove it
 }
+
 
 function saveFav() {
     if (!currentWord) return;
@@ -66,6 +72,12 @@ function saveFav() {
         localStorage.setItem('favs', JSON.stringify(favs));// we save the updated favorites list back to localStorage
         loadFavs();
     }
+}
+function removeFav(word) {
+    let favs = JSON.parse(localStorage.getItem('favs')) || [];
+    favs = favs.filter(w => w !== word);
+    localStorage.setItem('favs', JSON.stringify(favs));
+    loadFavs();
 }
 
 form.onsubmit = async (e) => {// we make the form submission an asynchronous function to handle the API call
@@ -83,6 +95,12 @@ form.onsubmit = async (e) => {// we make the form submission an asynchronous fun
     } catch (err) {
         error.textContent = err.message;
     }
+ document.addEventListener('click', (e) => {// we add a click event listener to the document to handle clicks on the favorite words in the list
+    if (e.target.classList.contains('fav-word')) {// if the clicked element has the class 'fav-word', we set the input value to that word and submit the form to search for it
+        input.value = e.target.textContent;
+        form.dispatchEvent(new Event('submit'));// we dispatch a submit event on the form to trigger the search
+    }
+});
 };
 
 saveBtn.onclick = saveFav;
