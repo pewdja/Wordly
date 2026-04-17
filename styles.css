@@ -62,9 +62,7 @@ button{
     border-radius: 5px;
     cursor: pointer;
 }
-button:hover{
-    background-color: #0056b3;
-}
+
 .container .word-details{
     margin-top: 20px;
     display: none;

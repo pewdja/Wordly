@@ -1,95 +1,90 @@
+const API = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
+const audio = new Audio();
+let currentWord = null;
 
-const API_BASE_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
+const form = document.getElementById('search-form');
+const input = document.getElementById('search-input');
+const details = document.getElementById('word-details');
+const error = document.getElementById('error-message');
+const favList = document.getElementById('favorites-list');
+const saveBtn = document.getElementById('save-word-btn');
+const playBtn = document.getElementById('word-audio');
 
-let currentWordData = null;
-const audioController = new Audio();
-
-const ui = {
-    form: document.getElementById('search-form'),
-    input: document.getElementById('search-input'),
-    details: document.getElementById('word-details'),
-    error: document.getElementById('error-message'),
-    favList: document.getElementById('favorites-list'),
-    saveBtn: document.getElementById('save-word-btn')
-};
-
-async function lookupWord(word) {
-    const response = await fetch(`${API_BASE_URL}${word.toLowerCase()}`);
-    if (!response.ok) throw new Error('We couldn’t find that word in our records.');
-    const [data] = await response.json();
-    return data;
+async function getWord(word) {
+    const res = await fetch(API + word.toLowerCase());
+    if (!res.ok) throw new Error('Word not found');
+    return (await res.json())[0];
 }
 
-const displayResult = (data) => {
-    currentWordData = data; // Store for favorites
-    const { word, meanings, phonetics, phonetic } = data;
+function showWord(data) {
+    currentWord = data;
 
-    ui.details.querySelector('#word-title').textContent = word;
-    ui.details.querySelector('#word-punctuation').textContent = phonetic || phonetics[0]?.text || '';
-    
-    const sense = meanings[0];
-    const def = sense.definitions[0];
+    const meaning = data.meanings?.[0];
+    const def = meaning?.definitions?.[0];
 
-    const slots = {
-        '#word-type span': sense.partOfSpeech,
-        '#word-meaning span': def.definition,
-        '#word-example span': def.example || 'No example provided.',
-        '#word-synonyms span': sense.synonyms?.join(', ') || 'N/A',
-        '#word-antonyms span': sense.antonyms?.join(', ') || 'N/A'
-    };
+    if (!meaning || !def) {
+        error.textContent = 'No data available';
+        return;
+    }
 
-    Object.entries(slots).forEach(([selector, text]) => {
-        const el = ui.details.querySelector(selector);
-        if (el) el.textContent = text;
-    });
+    document.getElementById('word-title').textContent = data.word;
+    document.getElementById('word-punctuation').textContent =
+        data.phonetic || data.phonetics?.[0]?.text || '';
 
-    // Audio Setup
-    const track = phonetics.find(p => p.audio !== '');
-    const playBtn = document.getElementById('word-audio');
-    
+    document.querySelector('#word-type span').textContent = meaning.partOfSpeech;
+    document.querySelector('#word-meaning span').textContent = def.definition;
+    document.querySelector('#word-example span').textContent =
+        def.example || 'No example';
+    document.querySelector('#word-synonyms span').textContent =
+        meaning.synonyms?.join(', ') || 'N/A';
+    document.querySelector('#word-antonyms span').textContent =
+        meaning.antonyms?.join(', ') || 'N/A';
+
+    const track = data.phonetics?.find(p => p.audio);
     if (track) {
-        audioController.src = track.audio;
-        playBtn.style.display = 'inline-block';
+        audio.src = track.audio;
+        playBtn.style.display = 'inline';
     } else {
         playBtn.style.display = 'none';
     }
 
-    ui.details.style.display = 'block';
-};
+    details.style.display = 'block';
+}
 
-const syncFavorites = () => {
-    const list = JSON.parse(localStorage.getItem('oxforder_favs')) || [];
-    ui.favList.innerHTML = list.map(item => `<li>${item}</li>`).join('');
-};
+function loadFavs() {
+    const favs = JSON.parse(localStorage.getItem('favs')) || [];
+    favList.innerHTML = favs.map(w => `<li>${w}</li>`).join('');
+}
 
-const addToFavorites = () => {
-    if (!currentWordData) return;
-    const list = JSON.parse(localStorage.getItem('oxforder_favs')) || [];
-    if (!list.includes(currentWordData.word)) {
-        list.push(currentWordData.word);
-        localStorage.setItem('oxforder_favs', JSON.stringify(list));
-        syncFavorites();
+function saveFav() {
+    if (!currentWord) return;
+
+    const favs = JSON.parse(localStorage.getItem('favs')) || [];
+    if (!favs.includes(currentWord.word)) {
+        favs.push(currentWord.word);
+        localStorage.setItem('favs', JSON.stringify(favs));
+        loadFavs();
     }
-};
+}
 
-ui.form.addEventListener('submit', async (e) => {
+form.onsubmit = async (e) => {
     e.preventDefault();
-    const query = ui.input.value.trim();
-    if (!query) return;
+    const word = input.value.trim();
+    if (!word) return;
 
-    ui.error.textContent = 'Searching...';
-    ui.details.style.display = 'none';
+    error.textContent = 'Searching...';
+    details.style.display = 'none';
 
     try {
-        const data = await lookupWord(query);
-        ui.error.textContent = '';
-        displayResult(data);
+        const data = await getWord(word);
+        error.textContent = '';
+        showWord(data);
     } catch (err) {
-        ui.error.textContent = err.message;
+        error.textContent = err.message;
     }
-});
+};
 
-ui.saveBtn.addEventListener('click', addToFavorites);
-document.getElementById('word-audio').addEventListener('click', () => audioController.play());
+saveBtn.onclick = saveFav;
+playBtn.onclick = () => audio.play();
 
-syncFavorites();
+loadFavs();
