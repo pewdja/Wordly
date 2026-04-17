@@ -28,8 +28,8 @@ function showWord(data) {
         return;
     }
 
-    document.getElementById('word-title').textContent = data.word;
-    document.getElementById('word-punctuation').textContent =
+    document.getElementById('word-title').textContent = data.word;// we show the word itself
+    document.getElementById('word-punctuation').textContent =// we show the phonetic(punctuation) transcription if available
         data.phonetic || data.phonetics?.[0]?.text || '';// we show the phonetic transcription if available
 
     document.querySelector('#word-type span').textContent = meaning.partOfSpeech;
@@ -49,10 +49,10 @@ function showWord(data) {
         playBtn.style.display = 'none';// if no audio is available, we hide the play button
     }
 
-    details.style.display = 'block';
+    details.style.display = 'block';// we show the details section
 }
 
-function loadFavs() {
+function loadFavs() {// we create a function to load the favorites from localStorage and display them in the favorites list
     const favs = JSON.parse(localStorage.getItem('favs')) || [];// we get the favorites from localStorage, or an empty array if none
     favList.innerHTML = favs.map(w => `
     <li>
@@ -63,10 +63,10 @@ function loadFavs() {
 }
 
 
-function saveFav() {
+function saveFav() {// we create a function to save the current word to the favorites list in localStorage
     if (!currentWord) return;
 
-    const favs = JSON.parse(localStorage.getItem('favs')) || [];
+    const favs = JSON.parse(localStorage.getItem('favs')) || [];// we get the current favorites list from localStorage, or an empty array if none
     if (!favs.includes(currentWord.word)) {
         favs.push(currentWord.word);// we add the current word to the favorites list if it's not already there
         localStorage.setItem('favs', JSON.stringify(favs));// we save the updated favorites list back to localStorage
@@ -74,9 +74,9 @@ function saveFav() {
     }
 }
 function removeFav(word) {
-    let favs = JSON.parse(localStorage.getItem('favs')) || [];
-    favs = favs.filter(w => w !== word);
-    localStorage.setItem('favs', JSON.stringify(favs));
+    let favs = JSON.parse(localStorage.getItem('favs')) || [];// we get the current favorites list from localStorage, or an empty array if none
+    favs = favs.filter(w => w !== word);// we remove the specified word from the favorites list
+    localStorage.setItem('favs', JSON.stringify(favs));// we save the updated favorites list back to localStorage
     loadFavs();
 }
 
@@ -92,12 +92,13 @@ form.onsubmit = async (e) => {// we make the form submission an asynchronous fun
         const data = await getWord(word);// we fetch the word data from the API
         error.textContent = '';
         showWord(data);
-    } catch (err) {        error.textContent = err.message;    }
+    } catch (err) {       
+         error.textContent = err.message;    }
 };
 
 saveBtn.onclick = saveFav;
 playBtn.onclick = () => audio.play();
-document.addEventListener('click', (e) => {
+document.addEventListener('click', (e) => {// we add a click event listener to the document to handle clicks on the favorite words in the favorites list
     if (e.target.classList.contains('fav-word')) {
         input.value = e.target.textContent;
         form.dispatchEvent(new Event('submit'));
