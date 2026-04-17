@@ -1,7 +1,7 @@
 //where the magic happens
 const API = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
-const audio = new Audio();
-let currentWord = null;
+const audio = new Audio();// we create a new Audio object to play the pronunciation audio files
+let currentWord = null;// we will use this variable to store the current word data for later use
 // getting the elements from the DOM
 const form = document.getElementById('search-form');
 const input = document.getElementById('search-input');
@@ -11,7 +11,7 @@ const favList = document.getElementById('favorites-list');
 const saveBtn = document.getElementById('save-word-btn');
 const playBtn = document.getElementById('word-audio');
 //the function to fetch the word data from the API
-async function getWord(word) {
+async function getWord(word) {// we make this function asynchronous to use await for the fetch call
     const res = await fetch(API + word.toLowerCase()); // API expects lowercase
     if (!res.ok) throw new Error('Word not found');
     return (await res.json())[0]; // we take the first result and turn it into an object
